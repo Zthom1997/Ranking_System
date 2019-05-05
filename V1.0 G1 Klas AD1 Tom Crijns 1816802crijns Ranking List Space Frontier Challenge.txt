@@ -1,0 +1,570 @@
+﻿#------------------------------------------------------------------------
+# Name:        Ranking System Casus Space Frontier Challenge            - 
+#                                                                       -
+# Purpose:     This Program is used for the process of attendees for    - 
+#              the Space Frontier Challenge to create teams and for     -
+#              showing the central Rankinglist during the competitions  -
+#              of this Challenge.                                       -
+#                                                                       -
+# Created by:  Tom Crijns, Jurre Stoelinga, Juul Winthaegen,            -
+#              Laurens Baarda                                           -
+#                                                                       -
+# Created:     22-10-2018                                               -
+# Version:     1.0                                                      - 
+# State:       In Production                                            -
+#                                                                       -
+# Production Date:   31-10-2018                                         -    
+# Updates:   N.V.T                                                      -
+#------------------------------------------------------------------------
+from datetime import datetime
+from operator import itemgetter
+import os
+
+#Constants
+#Constants that will be pre-loaded before start of program
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Dictionaries used to store or show attendees/teams/rankinglist
+Attendees = {}
+Teams = {}
+Rounds = {}
+
+#Team names of Space Missions and Stars that are competing in the Space Frontier Challenge 
+Team_Names = ("Enterprise", "Columbia", "Challenger", "Discovery", "Atlantis",
+              "Taurus", "Aquarius", "Delphinus", "Hydra", "Phoenix")
+
+#Directories needed on system where program is running on to write generated files to these directories
+Directories = ("C:/Space Frontier Challenge", "C:/Space Frontier Challenge/Deelnemers", "C:/Space Frontier Challenge/Scores",
+              "C:/Space Frontier Challenge/Logging", "C:/Space Frontier Challenge/Logging/Information","C:/Space Frontier Challenge/Logging/Errors")
+#Initial Game number
+Game = 1
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#End of Constants
+
+#Start of Part Main
+#This Part provides all functions needed for a correct functioning of the Main() program
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Main Function
+def Main():
+    Input = User_Input()
+
+    #Check for Input to determine if program has to be quit
+    if(Input is "Q") or (Input == "q"):
+        Using = False
+    else:
+        Using = True
+
+    return Using
+
+#Function to check if folders are present to prevent file errors
+def Check_Directories(Directory):
+
+    #Check for directories and create directories that are not present on C:\-Drive
+    #Raise error if directory cannot be created, give information message on how to act and exit program
+    for directory in Directory:
+        if not os.path.exists(directory):
+                try: 
+                    #Create directory on C:\-drive and return True
+                    os.makedirs(directory)
+                    print(datetime.now(),directory, "is succesvol aangemaakt!")
+                    return "Directory created"
+                except OSError as error:
+                    #Return condition False if directory can't be made on C:\-drive
+                    print(datetime.now(), directory, "kan niet worden aangemaakt!")
+                    print("Het programma wordt afgesloten! Neem contact op met uw beheerder of raadpleeg de softwaredocumentatie 'Documentatie Ranking Systeem Space Frontier Challenge'.")
+                    print("Druk op een toets om het programma af te sluiten...")
+                    return "Error"
+
+#Function to add teams to dictionary
+def Add_Teams(Team, Score):
+    Result = Teams
+
+    Teams[Team] = [Team, Score]
+
+    #Write data to file
+    File = open("C:/Space Frontier Challenge/Scores/Space Frontier Challenge Teams.txt", "a")    
+    for item in Teams[Team]:
+        File.write(str(item)+";")
+    File.write("\n")
+    File.close()
+
+#Function to Ask for user input
+def User_Input():
+    print("Welkom bij de Space Frontier Challenge! U heeft keuze uit de volgende Categorieën:\n 1. Deelnemers: \t D\n 2. Scores: \t\t S\n 3. Rankinglist \t R \n 4. Programma afsluiten: Q ")
+    User_Input = input("Voer uw keuze in: ")
+
+    while User_Input is "":
+            print("Er is geen invoer ingevoerd")
+            print("Welkom bij de Space Frontier Challenge! U heeft keuze uit de volgende Categorieën:\n 1. Deelnemers: \t D\n 2. Scores: \t\t S\n 3. Rankinglist \t R \n 4. Programma afsluiten: Q")
+            User_Input = input("Voer uw keuze in: ")
+    Process(User_Input)
+    return User_Input
+
+#Function to Process user input
+def Process(Input):
+    os.system("cls")
+    if(Input == "D") or (Input == "d"):
+      User_Input_Attendees()
+
+    elif(Input == "S") or (Input == "s"):
+        User_Input_Scores()
+
+    elif(Input == "R") or (Input == "r"):
+        User_Input_Rankinglist()
+
+    elif(Input == "Q") or (Input == "q"):
+        print("Iedereen hartelijk dank voor meedoen aan de Space Frontier Challenge!")
+        print("Het programma toont alle laatste overzichten en wordt afgesloten.")
+        Team_Rank()
+
+    else:
+        print("De invoer is ongeldig en-/of kan niet verwerkt worden. Probeer het nog een keer...\n")
+        User_Input()
+
+#Function to determine game number
+def Game_Number(Game):
+    Game += 1
+    return Game
+
+#Shut down program
+def Close_Program(Input, In_Use):
+    if(Input is "Q") or (Input is "q"):
+        In_Use = False
+    return In_Use
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#End of Part Main
+
+#Start Part Attendees
+#This part of the program provides the functions needed to add or modify attendees of the Space Frontier Challenge
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Function to Ask for user input
+def User_Input_Attendees():
+    print("Dit is de categorie 'DEELNEMERS'. U heeft keuze uit de volgende mogelijkheden:\n 1. Deelnemers Toevoegen: \t T\n 2. Overzicht Deelnemers: \t O\n 3. DEELNEMERS afsluiten: \t Q\n")
+    User_Input_Attendees = input("Voer uw keuze in: ")
+
+    #Enter while loop if user input is empty
+    while User_Input_Attendees is "":
+          print("Er is geen invoer ingevoerd. \n ")
+          print("Dit is de categorie 'DEELNEMERS'. U heeft keuze uit de volgende mogelijkheden:\n 1. Deelnemers Toevoegen: \t T\n 2. Overzicht Deelnemers: \t O\n 3. DEELNEMERS afsluiten: \t Q\n")
+          User_Input_Attendees = input("Voer uw keuze in: ")
+
+    Process_Input_Attendees(User_Input_Attendees)
+
+#Function to Process user input
+def Process_Input_Attendees(Input):
+    os.system("cls")
+    if(Input == "T") or (Input == "t"):
+       if Game > 1:
+           print("Het is niet langer mogelijk om nieuwe deelnemers toe te voegen!")
+           User_Input_Attendees()
+       else:
+            LogFile = datetime.now().strftime("C:/Space Frontier Challenge/Logging/Errors/Logfile_Deelnemers_Error_%d%m%Y.log")        
+            Register_Attendee(LogFile)
+
+    elif(Input == "O") or (Input == "o"):
+        Attendee_Number = input("Voer een deelnemersnummer in of voer niets in om het gehele overzicht te weergeven: ")
+        if(Attendee_Number is ""):
+            Read_Attendees(Attendee_Number)
+
+        elif(Attendee_Number not in Attendees):
+            print("Reservering {} is nog niet aangemeld of bestaat niet.".format(Attendee_Number))
+            Any_Key = input("Druk op een toets om terug te gaan naar het hoofdmenu.")
+            os.system("cls")
+            User_Input()
+        else:
+            Read_Attendees(Attendee_Number)
+
+    elif(Input == "Q") or (Input == "q"):
+        User_Input()
+        
+    else:
+        print("De invoer is ongeldig en-/of kan niet verwerkt worden. Probeer het nog een keer...\n")
+        User_Input_Attendees()
+
+#Function to Register new Attendee
+def Register_Attendee(LogFile):
+    os.system("cls")
+
+    #Register Space Frontier Number
+    try:
+        Attendee_Number = int(input("Vul een deelnemersnummer in: "))
+    except ValueError as Value_Error:
+         print("Het deelnemers nummer is ongeldig of leeg!")
+         Error = Value_Error 
+         Logging_Errors_Attendees(LogFile, Error)
+         User_Input_Attendees()
+    
+    #Register First Name
+    First_Name = input("Voer een voornaam in: ")
+    while not First_Name.isalpha():
+        print("De voornaam bevat ongeldige tekens of is leeg!")
+        First_Name = input("Voer een voornaam in: ")
+        Error = "Er is een ongeldige voornaam ingevuld!"
+        Logging_Errors_Attendees(LogFile, Error)
+
+    #Register Last Name
+    Last_Name = input("Voer een achternaam in: ")
+    while not Last_Name.isalpha():
+        print("De achternaam bevat ongeldige tekens of is leeg!")
+        Last_Name = input("Voer een achternaam in: ")
+        Error = "Er is een ongeldige achternaam ingevuld!"
+        Logging_Errors_Attendees(LogFile, Error)
+
+    #Register Email
+    Email = input("Voer een Email-adres in: ")
+    while "@" not in Email:     #.com toevoegen
+        print("Er is een ongeldig Email-adres ingevuld! (example@example.nl)")
+        Email = input("Voer een Email-adres in: ")
+        Error = "Er is een ongeldig Email-adres ingevuld!"
+        Logging_Errors_Attendees(LogFile, Error)
+
+    #Register Education
+    Education = input("Voer een opleiding in: ")
+    while Education is "":
+        print("Opleiding bevat ongeldige tekens of is leeg!")
+        Education = input("Voer een opleiding in: ")
+        Error = "Er is een ongeldige opleiding ingevuld!"
+        Logging_Errors_Attendees(LogFile, Error)
+    
+    #Register Team
+    print("Beschikbare teams waarin deelnemers geplaatst kunnen worden:")
+    print("{}".format("Teamnaam:"))
+    print("\n")
+    for item in Team_Names:
+        print("{}".format(item))
+    print("\n")
+
+    Team = input("Voer een teamnaam in: ")
+    while Team not in Team_Names:
+       print("Het team is ongeldig of is leeg!")
+       Team = input("Voer een teamnaam in: ")
+       Error = "Er is een ongeldig team ingevuld!"
+       Logging_Errors_Attendees(LogFile, Error)
+    
+    #Set initial score for each player
+    Score = 0
+
+    #Convert Space Frontier Number and Team to string to write to files
+    Attendee_Number = str(Attendee_Number)
+    Team = str(Team)
+
+    Add_Attendees(Attendee_Number, First_Name, Last_Name, Email, Education, Team, Score)
+
+#Function to add new attendees to dictionary
+def Add_Attendees(Attendee_Number, First_Name, Last_Name, Email, Education, Team, Score):
+    #Result = Attendees
+
+    if(Attendee_Number in Attendees):
+        print("Nummer {} is al aangemeld en kan niet opnieuw worden aangemeld!".format(Attendee_Number)+ "\n")
+
+    else:
+        Attendees[Attendee_Number] = [Attendee_Number, First_Name, Last_Name, Email, Education, Team, Score]
+
+    #Write data to file
+    File = open("C:/Space Frontier Challenge/Deelnemers/Space Frontier Challenge Deelnemers.txt", "a")
+    for item in Attendees[Attendee_Number]:
+        File.write(str(item)+";")
+    File.write("\n")
+    File.close()
+
+    Logging_Attendees(Attendee_Number, First_Name, Last_Name, Email, Education, Team)
+    #return Result
+
+#Function to read Dictionary Attendees
+def Read_Attendees(Attendee_Number):
+    os.system("cls")
+    #Read entire dictionary
+    if(Attendee_Number == ""):
+        Attendees_List = list(Attendees.values())
+        Item = Attendees_List
+        print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Deelnemer nr.:", "Voornaam:", "Achternaam:", "Email:", "Opleiding:", "Team:"))
+        for Item in Attendees_List:
+            print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format(Item[0], Item[1], Item[2], Item[3], Item[4], Item[5]))
+
+    #Read data of specific person/Space Frontier Number
+    elif(Attendee_Number == Attendee_Number):
+        Item = Attendees[Attendee_Number]
+        print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Deelnemer nr.:", "Voornaam:", "Achternaam:", "Email:", "Opleiding:", "Team:"))
+        print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format(Item[0], Item[1], Item[2], Item[3], Item[4], Item[5]))
+
+
+#Logging
+
+#Information Logging
+def Logging_Attendees(Attendee_Number, First_Name, Last_Name, Email, Education, Team):
+    LogFile = datetime.now().strftime("C:/Space Frontier Challenge/Logging/Information/Logfile_Deelnemers_Information_%H%M%S_%d%m%Y.log")
+    LogFile = open(LogFile, "w")
+    LogFile.write(str("Tijd: "+ str(datetime.now()))+"\n")
+    LogFile.write(str("Naam: "+ First_Name + Last_Name)+"\n")
+    LogFile.write(str("Reserveringsnummer: "+ Attendee_Number)+"\n")
+    LogFile.write(str("Voornaam: "+First_Name)+"\n")
+    LogFile.write(str("Achternaam: "+Last_Name)+"\n")
+    LogFile.write(str("Opleiding: "+Education)+"\n")
+    LogFile.write(str("Team: "+Team)+"\n")
+    LogFile.close()
+    User_Input_Attendees()
+
+#Error Logging
+def Logging_Errors_Attendees(LogFile, Error):
+    LogFile = open(LogFile, "a")
+    LogFile.write(str(datetime.now())+ ":")
+    LogFile.write(str( Error)+"\n\n")
+    LogFile.close()
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#End Part Attendees
+
+#Start of Part Scores
+##This part of the program provides the functions needed to add or modify Person or Team Scores
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Function to ask user for input
+def User_Input_Scores():
+    print("Dit is de categorie 'SCORES'. U heeft keuze uit de volgende mogelijkheden:\n 1. Scores invoeren: \t\t\t I\n 2. Overzicht team scores: \t\t T\n 3. Overzicht scores per persoon: \t S\n4. SCORES afsluiten: \t\t\t Q\n")
+    User_Input_Scores = input("Voer uw keuze in: ")
+
+    #Enter while loop if user input is empty
+    while User_Input_Scores is "":
+          print("Er is geen invoer ingevoerd. \n ")
+          print("Dit is de categorie 'SCORES'. U heeft keuze uit de volgende mogelijkheden:\n 1. Scores invoeren: \t\t\t I\n 2. Overzicht team scores: \t\t T\n 3. Overzicht scores per persoon: \t S\n4. SCORES afsluiten: \t\t\t Q\n")
+          User_Input_Scores = input("Voer uw keuze in: ")
+
+    Process_Input_Scores(User_Input_Scores)
+
+#Function to process User Input
+def Process_Input_Scores(Input):
+    os.system("cls")
+    if(Input == "T") or (Input == "t"):
+       Team = input("Voer een team in of voer niets in om het gehele overzicht te weergeven: ")
+       if(Team is ""):
+           Read_Teams(Team)
+
+       elif(Team not in Team_Names):
+           print("{} is niet gevonden of bestaat niet!".format(Team))
+           Any_Key = input("Druk op een toets om terug te gaan naar het hoofdmenu.")
+           User_Input_Scores()
+       else:
+         Read_Teams(Team)
+    
+    elif(Input == "I") or (Input == "i"):
+        Update_Score(Game)
+
+    elif(Input == "S") or (Input == "s"):
+        Read_Player_Score()
+
+    elif(Input == "Q") or (Input == "q"):
+        User_Input()
+    else:
+        print("De invoer is ongeldig en-/of kan niet verwerkt worden. Probeer het nog een keer...\n")
+        User_Input_Scores()
+
+#Function to read Dictionary Teams
+def Read_Teams(Team):
+    os.system("cls")
+    if(Team == ""):
+        Teams_List = list(Teams.values())
+        Item = Teams_List
+        print("{:<15} {:<25}".format("Team:", "Score:"))
+        for Item in Teams_List:
+            print("{:<15} {:<25}".format(Item[0], Item[1]))
+    
+    elif(Team == Team):
+        Item = Teams[Team]
+        print("{:<10} {:<20}".format("Team:", "Score:"))
+        print("{:<10} {:<20}".format(Item[0], Item[1]))
+
+#Function to update scores
+def Update_Score(Game):
+    os.system("cls")
+    File_Attendee = open("C:/Space Frontier Challenge/Scores/Wedstrijd "+str(Game)+".txt", "a")
+    print("Scores wedstrijd", Game)
+   
+    #Score input
+
+    #Ask for Space Frontier Number
+    Attendee_Number = input("Deelnemer nummer: ")
+    while str(Attendee_Number) not in Attendees:
+        print("Het nummer is ongeldig of niet ingevuld! Probeer het nog een keer...")
+        Attendee_Number = input("Deelnemer nummer: ")
+    
+    #Ask for Team
+    Team = input("Team: ")
+    while Team not in Team_Names:
+        print("Team dient verplicht ingevuld te worden!")
+        Team = input("Team: ")
+    
+    #Ask for score Effectiveness
+    Effectiveness = input("Score effectiviteit: ")
+    while Effectiveness.isdigit() is False:
+        print("Score is ongeldig! Probeer het nog een keer...")
+        Effectiveness = input("Score effectiviteit: ")
+
+    #Ask for score Speed
+    Speed = input("Score snelheid: ")
+    while Speed.isdigit is False:
+        print("Score is ongeldig! Probeer het nog een keer...")
+        Speed = input("Score effectiviteit: ")
+
+    #Ask for score Material
+    Material = input("Score materiaal: ")
+    while Material.isdigit is False:
+        print("Score is ongeldig! Probeer het nog een keer...")
+        Material = input("Score effectiviteit: ")
+    
+    #Ask for score Energy
+    Energy = input("Score energie: ")
+    while Energy.isdigit() is False:
+        print("Score is ongeldig! Probeer het nog een keer...")
+        Energy = input("Score effectiviteit: ")
+
+    #Calculate score
+    Score = int(Effectiveness) + int(Speed) + int(Material) + int(Energy)
+    
+    #Assign score to team
+    Teams[Team][1] += int(Score)
+    File_Team= open("C:/Space Frontier Challenge/Scores/Space Frontier Challenge Team Scores wedstrijd"+" "+str(Game)+".txt", "a")
+    Result = Teams[Team][1]
+    File_Team.write(Teams[Team][0]+";"+str(Result))
+    File_Team.write("\n")
+    File_Team.close()
+
+    #Assign score to player
+    Attendee_Number = str(Attendee_Number)
+    if(Attendee_Number in Attendees):
+       Attendees[Attendee_Number][6] += int(Score)
+       Name = Attendees[Attendee_Number][1] + " " + Attendees[Attendee_Number][2]
+
+    #Write data to file
+    File_Attendee.write(str(Name) +";")
+    File_Attendee.write(str(Effectiveness)+";")
+    File_Attendee.write(str(Speed)+";")
+    File_Attendee.write(str(Material)+";")
+    File_Attendee.write(str(Energy)+";")
+    File_Attendee.write(str(Score)+"\n")
+    File_Attendee.close()
+
+    #Dictionary per Round
+    Rounds[Attendee_Number] = [Attendee_Number, Name, Team, Effectiveness, Speed, Material, Energy, Score]
+
+    #Check if user wants to register more scores
+    os.system("cls")
+    Again = input("Wilt u nog een score toevoegen (J/N): ")
+
+    if(Again == "J") or (Again == "j"):
+        Update_Score(Game)
+    else:
+       print("Wedstrijd",Game,"is nog niet vastgelegd!")
+       print("Let op! Na vastleggen van eerste wedstrijd is het niet langer mogelijk om nieuwe deelnemers toe te voegen.")
+       
+       #Ask user to input one more game
+       Record_Game = input("Wilt u de wedstrijd vastleggen? (J/N): ")
+       if(Record_Game is "J") or (Record_Game is "j"):
+           print("Wedstrijd is vastgelegd\n")
+           Scores(Rounds,Game)
+       else:
+           User_Input_Scores()
+
+#Read Player Score
+def Read_Player_Score():
+    os.system("cls")
+    Scores_List = list(Attendees.values())
+    Item = Scores_List
+    print("{:<20} {:<20} {:<20} {:<20} {:<20}".format("Deelnemer Nr.:", "Voornaam", "Achternaam", "Team:", "Score"))
+    for Item in Scores_List:
+       print("{:<20} {:<20} {:<20} {:<20} {:<20}".format(Item[0], Item[1], Item[2], Item[5], Item[6]))
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#End of Part Teams
+
+#Start of part RankingList
+#This part of the program is responsible for showing the rankinglists
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Function to ask for user input
+def User_Input_Rankinglist():
+    os.system("cls")
+    print("Dit is de categorie 'RANKINGLIST'. U heeft keuze uit de volgende mogelijkheden:\n 1. Rankinglist deelnemers: \t D\n 2. Rankinglist Teams: \t\t T\n 3. SCORES afsluiten: \t\t Q\n")
+    User_Input_Scores = input("Voer uw keuze in: ")
+
+    #Enter while loop if user input is empty
+    while User_Input_Rankinglist is "":
+          print("Er is geen invoer ingevoerd. \n ")
+          print("Dit is de categorie 'RANKINGLIST'. U heeft keuze uit de volgende mogelijkheden:\n 1. Rankinglist deelnemers: \t D\n 2. Rankinglist Teams: \t\t T\n 3. SCORES afsluiten: \t\t Q\n")
+          User_Input_Scores = input("Voer uw keuze in: ")
+   
+    Process_Input_Rankinglist(User_Input_Scores)
+
+#Function to process User input
+def Process_Input_Rankinglist(Input):
+    os.system("cls")
+    if(Input == "D") or (Input =="d"):
+        Player_Rank()
+
+    elif(Input == "T") or (Input == "t"):
+        Team_Rank()
+
+    elif(Input == "Q") or (Input == "q"):
+        User_Input()
+
+    else:
+        print("De invoer is ongeldig en-/of kan niet verwerkt worden. Probeer het nog een keer...\n")
+        User_Input_Rankinglist()
+
+#Function to show score per gameround
+def Scores(Rounds, Game):
+    print("Scores P.P. van wedstrijd",Game,"\n")
+    print("{:<20}{:<20}{:<20}{:<20}{:<20}{:<20}{:<20}{:<20}".format("Deelnemer nr.:", "Naam:", "Score Team:", "Score Effectiviteit:", "Score Snelheid", "Score Materiaal:", "Score Energy", "Totaalscore:"))
+    for Item in sorted(Rounds.values(), key=itemgetter(7), reverse=True):
+        print("{:<20}{:<20}{:<20}{:<20}{:<20}{:<20}{:<20}{:<20}".format(Item[0],Item[1],Item[2],Item[3],Item[4],Item[5],Item[6],Item[7]))
+    print("\n")
+    Team_Rank()
+
+#Function to show Team ranking
+def Team_Rank():
+     Number = 0
+     print("Tussenstand Teams\n")
+     print("{:<10} {:<20} {:<20}".format("Plaats:","Team:","Score:"))
+     for Item in sorted(Teams.values(), key=itemgetter(1), reverse=True):
+         Number += 1
+         print("{:<10} {:<20} {:<20}".format(Number,Item[0], Item[1]))
+     print("\n")
+     Player_Rank()
+
+#Function to show Player Ranking
+def Player_Rank():
+    print("Rankings\n")
+    print("{:<20} {:<20}{:<20}{:<20}{:<20}".format("Deelnemer nr.:", "Voornaam:", "Achternaam:", "Team:", "Score:"))
+    for Item in sorted(Attendees.values(), key=itemgetter(6), reverse=True):
+        print("{:<20} {:<20}{:<20}{:<20}{:<20}".format(Item[0],Item[1],Item[2], Item[5], Item[6]))
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#End of Part RankingList
+
+#Auto-loading functions before start of program
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Check C:\-drive if necessary folders are present and create folders if necessary
+Counter = 0 
+while Counter < len(Directories) and "Directory created":
+    Standard_Directories = Check_Directories(Directories)
+    Counter += 1
+    if Counter is 6:
+        print("\nAlle vereiste mappen zijn succesvol aangemaakt en-/of gevonden! Programma is klaar voor gebruik.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        Continu_Program = input("Druk op een toets om door te gaan...")
+
+#clear prompt from check result
+os.system("cls")
+
+#Auto-load teams and initial scores
+for team in Team_Names:
+    Add_Teams(team, 0)
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Main Program
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Using = True
+In_Use = Using
+while In_Use:
+    In_Use = Main()
+    Game = Game_Number(Game)
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
